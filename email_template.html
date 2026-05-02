@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dagelijkse beursupdate</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5; color: #1a1a2e; }
+    a { color: #0C447C; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .header { background: #0C447C; padding: 28px 40px; color: #fff; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.3px; }
+    .header .date { margin-top: 4px; font-size: 13px; opacity: 0.75; }
+
+    /* Container */
+    .container { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Metric cards */
+    .metrics { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .metric-card { flex: 1; min-width: 180px; background: #fff;
+                    border-radius: 10px; padding: 18px 20px;
+                    box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .metric-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+                            letter-spacing: 0.8px; color: #6b7280; margin-bottom: 6px; }
+    .metric-card .value { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+    .metric-card .change { font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .positive { color: #16a34a; }
+    .negative { color: #dc2626; }
+
+    /* Section */
+    .section { background: #fff; border-radius: 10px; padding: 24px 28px;
+                margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .section-title { font-size: 15px; font-weight: 700; color: #0C447C;
+                      text-transform: uppercase; letter-spacing: 0.6px;
+                      border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+                      margin-bottom: 18px; }
+
+    /* Marktnieuws */
+    .news-item { padding: 14px 0; border-bottom: 1px solid #f3f4f6; }
+    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .news-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .news-summary { font-size: 13px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }
+    .news-meta { font-size: 11px; color: #9ca3af; }
+    .news-link { font-size: 12px; }
+
+    /* Portfolio tabel */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.6px; color: #6b7280; padding: 6px 10px 10px; }
+    td { padding: 10px; border-top: 1px solid #f3f4f6; vertical-align: top; }
+    .portfolio-row:hover td { background: #fafafa; }
+
+    .ticker-badge { display: inline-block; background: #0C447C; color: #fff;
+                     font-size: 11px; font-weight: 700; padding: 2px 7px;
+                     border-radius: 4px; letter-spacing: 0.5px; }
+    .pct-col { font-weight: 600; color: #374151; white-space: nowrap; }
+
+    .label { display: inline-block; font-size: 10px; font-weight: 700;
+              padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px; }
+    .label-BULLISH  { background: #dcfce7; color: #15803d; }
+    .label-BEARISH  { background: #fee2e2; color: #b91c1c; }
+    .label-NEUTRAAL { background: #f3f4f6; color: #6b7280; }
+
+    /* Actiepunten */
+    .action-list { list-style: none; counter-reset: action-counter; }
+    .action-list li { counter-increment: action-counter; display: flex;
+                       align-items: flex-start; gap: 12px; padding: 10px 0;
+                       border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+    .action-list li:last-child { border-bottom: none; }
+    .action-list li::before { content: counter(action-counter);
+                               display: flex; align-items: center; justify-content: center;
+                               min-width: 24px; height: 24px; background: #0C447C;
+                               color: #fff; font-size: 12px; font-weight: 700;
+                               border-radius: 50%; flex-shrink: 0; margin-top: 1px; }
+
+    /* Footer */
+    .footer { text-align: center; font-size: 12px; color: #9ca3af; padding: 16px 0 32px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Dagelijkse beursupdate</h1>
+    <div class="date">{DATE_LONG}</div>
+  </div>
+
+  <div class="container">
+
+    <!-- Metric cards -->
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="label">S&amp;P 500</div>
+        <div class="value">{SP500_VALUE}</div>
+        <div class="change {SP500_COLOR_CLASS}">{SP500_CHANGE}</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Nasdaq</div>
+        <div class="value">{NASDAQ_VALUE}</div>
+        <div class="change {NASDAQ_COLOR_CLASS}">{NASDAQ_CHANGE}</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">AEX</div>
+        <div class="value">{AEX_VALUE}</div>
+        <div class="change {AEX_COLOR_CLASS}">{AEX_CHANGE}</div>
+      </div>
+    </div>
+
+    <!-- Marktoverzicht -->
+    <div class="section">
+      <div class="section-title">Marktoverzicht</div>
+      
+        <div class="news-item">
+          <div class="news-title">{MARKET_TITLE_1}</div>
+          <div class="news-summary">{MARKET_SUMMARY_1}</div>
+          <div class="news-meta">{MARKET_SOURCE_1} &mdash; <a href="{MARKET_LINK_1}">lees meer</a></div>
+        </div>
+        <div class="news-item">
+          <div class="news-title">{MARKET_TITLE_2}</div>
+          <div class="news-summary">{MARKET_SUMMARY_2}</div>
+          <div class="news-meta">{MARKET_SOURCE_2} &mdash; <a href="{MARKET_LINK_2}">lees meer</a></div>
+        </div>
+        <div class="news-item">
+          <div class="news-title">{MARKET_TITLE_3}</div>
+          <div class="news-summary">{MARKET_SUMMARY_3}</div>
+          <div class="news-meta">{MARKET_SOURCE_3} &mdash; <a href="{MARKET_LINK_3}">lees meer</a></div>
+        </div>
+    </div>
+
+    <!-- Portfolio materieel nieuws -->
+    <div class="section">
+      <div class="section-title">Portfolio &mdash; materieel nieuws</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Naam</th>
+            <th>%</th>
+            <th>Sentiment</th>
+            <th>Wat</th>
+            <th>Advies</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">VWRL</span></td>
+          <td>VWRL All-World ETF</td>
+          <td class="pct-col">8.5%</td>
+          <td><span class="label label-{LABEL_VWRL}">{LABEL_VWRL}</span></td>
+          <td>{WAT_VWRL}</td>
+          <td>{ADVIES_VWRL}</td>
+          <td><a href="{LINK_VWRL}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">COIN</span></td>
+          <td>Coinbase</td>
+          <td class="pct-col">7.6%</td>
+          <td><span class="label label-{LABEL_COIN}">{LABEL_COIN}</span></td>
+          <td>{WAT_COIN}</td>
+          <td>{ADVIES_COIN}</td>
+          <td><a href="{LINK_COIN}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ADBE</span></td>
+          <td>Adobe</td>
+          <td class="pct-col">5.7%</td>
+          <td><span class="label label-{LABEL_ADBE}">{LABEL_ADBE}</span></td>
+          <td>{WAT_ADBE}</td>
+          <td>{ADVIES_ADBE}</td>
+          <td><a href="{LINK_ADBE}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">GOOGL</span></td>
+          <td>Alphabet</td>
+          <td class="pct-col">4.8%</td>
+          <td><span class="label label-{LABEL_GOOGL}">{LABEL_GOOGL}</span></td>
+          <td>{WAT_GOOGL}</td>
+          <td>{ADVIES_GOOGL}</td>
+          <td><a href="{LINK_GOOGL}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SMH</span></td>
+          <td>VanEck Semiconductors</td>
+          <td class="pct-col">4.3%</td>
+          <td><span class="label label-{LABEL_SMH}">{LABEL_SMH}</span></td>
+          <td>{WAT_SMH}</td>
+          <td>{ADVIES_SMH}</td>
+          <td><a href="{LINK_SMH}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ESPO</span></td>
+          <td>VanEck Gaming & Esports</td>
+          <td class="pct-col">3.9%</td>
+          <td><span class="label label-{LABEL_ESPO}">{LABEL_ESPO}</span></td>
+          <td>{WAT_ESPO}</td>
+          <td>{ADVIES_ESPO}</td>
+          <td><a href="{LINK_ESPO}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NVDA</span></td>
+          <td>Nvidia</td>
+          <td class="pct-col">3.8%</td>
+          <td><span class="label label-{LABEL_NVDA}">{LABEL_NVDA}</span></td>
+          <td>{WAT_NVDA}</td>
+          <td>{ADVIES_NVDA}</td>
+          <td><a href="{LINK_NVDA}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">VOW3</span></td>
+          <td>Volkswagen</td>
+          <td class="pct-col">3.7%</td>
+          <td><span class="label label-{LABEL_VOW3}">{LABEL_VOW3}</span></td>
+          <td>{WAT_VOW3}</td>
+          <td>{ADVIES_VOW3}</td>
+          <td><a href="{LINK_VOW3}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NFLX</span></td>
+          <td>Netflix</td>
+          <td class="pct-col">3.6%</td>
+          <td><span class="label label-{LABEL_NFLX}">{LABEL_NFLX}</span></td>
+          <td>{WAT_NFLX}</td>
+          <td>{ADVIES_NFLX}</td>
+          <td><a href="{LINK_NFLX}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SHELL</span></td>
+          <td>Shell</td>
+          <td class="pct-col">3.0%</td>
+          <td><span class="label label-{LABEL_SHELL}">{LABEL_SHELL}</span></td>
+          <td>{WAT_SHELL}</td>
+          <td>{ADVIES_SHELL}</td>
+          <td><a href="{LINK_SHELL}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">DIS</span></td>
+          <td>Walt Disney</td>
+          <td class="pct-col">2.0%</td>
+          <td><span class="label label-{LABEL_DIS}">{LABEL_DIS}</span></td>
+          <td>{WAT_DIS}</td>
+          <td>{ADVIES_DIS}</td>
+          <td><a href="{LINK_DIS}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ORCL</span></td>
+          <td>Oracle</td>
+          <td class="pct-col">2.8%</td>
+          <td><span class="label label-{LABEL_ORCL}">{LABEL_ORCL}</span></td>
+          <td>{WAT_ORCL}</td>
+          <td>{ADVIES_ORCL}</td>
+          <td><a href="{LINK_ORCL}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PYPL</span></td>
+          <td>PayPal</td>
+          <td class="pct-col">2.7%</td>
+          <td><span class="label label-{LABEL_PYPL}">{LABEL_PYPL}</span></td>
+          <td>{WAT_PYPL}</td>
+          <td>{ADVIES_PYPL}</td>
+          <td><a href="{LINK_PYPL}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">QLYS</span></td>
+          <td>Qualys</td>
+          <td class="pct-col">2.7%</td>
+          <td><span class="label label-{LABEL_QLYS}">{LABEL_QLYS}</span></td>
+          <td>{WAT_QLYS}</td>
+          <td>{ADVIES_QLYS}</td>
+          <td><a href="{LINK_QLYS}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">AMZN</span></td>
+          <td>Amazon</td>
+          <td class="pct-col">2.4%</td>
+          <td><span class="label label-{LABEL_AMZN}">{LABEL_AMZN}</span></td>
+          <td>{WAT_AMZN}</td>
+          <td>{ADVIES_AMZN}</td>
+          <td><a href="{LINK_AMZN}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PLTR</span></td>
+          <td>Palantir</td>
+          <td class="pct-col">1.9%</td>
+          <td><span class="label label-{LABEL_PLTR}">{LABEL_PLTR}</span></td>
+          <td>{WAT_PLTR}</td>
+          <td>{ADVIES_PLTR}</td>
+          <td><a href="{LINK_PLTR}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NKE</span></td>
+          <td>Nike</td>
+          <td class="pct-col">1.9%</td>
+          <td><span class="label label-{LABEL_NKE}">{LABEL_NKE}</span></td>
+          <td>{WAT_NKE}</td>
+          <td>{ADVIES_NKE}</td>
+          <td><a href="{LINK_NKE}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SBUX</span></td>
+          <td>Starbucks</td>
+          <td class="pct-col">1.9%</td>
+          <td><span class="label label-{LABEL_SBUX}">{LABEL_SBUX}</span></td>
+          <td>{WAT_SBUX}</td>
+          <td>{ADVIES_SBUX}</td>
+          <td><a href="{LINK_SBUX}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">DUOL</span></td>
+          <td>Duolingo</td>
+          <td class="pct-col">1.8%</td>
+          <td><span class="label label-{LABEL_DUOL}">{LABEL_DUOL}</span></td>
+          <td>{WAT_DUOL}</td>
+          <td>{ADVIES_DUOL}</td>
+          <td><a href="{LINK_DUOL}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ULVR</span></td>
+          <td>Unilever</td>
+          <td class="pct-col">1.8%</td>
+          <td><span class="label label-{LABEL_ULVR}">{LABEL_ULVR}</span></td>
+          <td>{WAT_ULVR}</td>
+          <td>{ADVIES_ULVR}</td>
+          <td><a href="{LINK_ULVR}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NVO</span></td>
+          <td>Novo Nordisk ADR</td>
+          <td class="pct-col">1.5%</td>
+          <td><span class="label label-{LABEL_NVO}">{LABEL_NVO}</span></td>
+          <td>{WAT_NVO}</td>
+          <td>{ADVIES_NVO}</td>
+          <td><a href="{LINK_NVO}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ALFEN</span></td>
+          <td>Alfen</td>
+          <td class="pct-col">1.4%</td>
+          <td><span class="label label-{LABEL_ALFEN}">{LABEL_ALFEN}</span></td>
+          <td>{WAT_ALFEN}</td>
+          <td>{ADVIES_ALFEN}</td>
+          <td><a href="{LINK_ALFEN}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">KO</span></td>
+          <td>Coca-Cola</td>
+          <td class="pct-col">1.2%</td>
+          <td><span class="label label-{LABEL_KO}">{LABEL_KO}</span></td>
+          <td>{WAT_KO}</td>
+          <td>{ADVIES_KO}</td>
+          <td><a href="{LINK_KO}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NIO</span></td>
+          <td>NIO ADR</td>
+          <td class="pct-col">0.8%</td>
+          <td><span class="label label-{LABEL_NIO}">{LABEL_NIO}</span></td>
+          <td>{WAT_NIO}</td>
+          <td>{ADVIES_NIO}</td>
+          <td><a href="{LINK_NIO}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">T</span></td>
+          <td>AT&T</td>
+          <td class="pct-col">0.8%</td>
+          <td><span class="label label-{LABEL_T}">{LABEL_T}</span></td>
+          <td>{WAT_T}</td>
+          <td>{ADVIES_T}</td>
+          <td><a href="{LINK_T}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">HPQ</span></td>
+          <td>HP Inc</td>
+          <td class="pct-col">0.5%</td>
+          <td><span class="label label-{LABEL_HPQ}">{LABEL_HPQ}</span></td>
+          <td>{WAT_HPQ}</td>
+          <td>{ADVIES_HPQ}</td>
+          <td><a href="{LINK_HPQ}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">FIGMA</span></td>
+          <td>Figma</td>
+          <td class="pct-col">0.4%</td>
+          <td><span class="label label-{LABEL_FIGMA}">{LABEL_FIGMA}</span></td>
+          <td>{WAT_FIGMA}</td>
+          <td>{ADVIES_FIGMA}</td>
+          <td><a href="{LINK_FIGMA}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PINS</span></td>
+          <td>Pinterest</td>
+          <td class="pct-col">0.4%</td>
+          <td><span class="label label-{LABEL_PINS}">{LABEL_PINS}</span></td>
+          <td>{WAT_PINS}</td>
+          <td>{ADVIES_PINS}</td>
+          <td><a href="{LINK_PINS}" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SNAP</span></td>
+          <td>Snap</td>
+          <td class="pct-col">0.3%</td>
+          <td><span class="label label-{LABEL_SNAP}">{LABEL_SNAP}</span></td>
+          <td>{WAT_SNAP}</td>
+          <td>{ADVIES_SNAP}</td>
+          <td><a href="{LINK_SNAP}" class="news-link">bericht</a></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Vandaag in de gaten houden -->
+    <div class="section">
+      <div class="section-title">Vandaag in de gaten houden</div>
+      <ol class="action-list">
+        <li>{ACTIE_1}</li>
+        <li>{ACTIE_2}</li>
+        <li>{ACTIE_3}</li>
+      </ol>
+    </div>
+
+    <div class="footer">
+      Volgende update: {NEXT_UPDATE_TIME} &bull; {GMAIL_USER}
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dagelijkse beursupdate</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5; color: #1a1a2e; }
+    a { color: #0C447C; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* Header */
+    .header { background: #0C447C; padding: 28px 40px; color: #fff; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.3px; }
+    .header .date { margin-top: 4px; font-size: 13px; opacity: 0.75; }
+
+    /* Container */
+    .container { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Metric cards */
+    .metrics { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .metric-card { flex: 1; min-width: 180px; background: #fff;
+                    border-radius: 10px; padding: 18px 20px;
+                    box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .metric-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+                            letter-spacing: 0.8px; color: #6b7280; margin-bottom: 6px; }
+    .metric-card .value { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+    .metric-card .change { font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .positive { color: #16a34a; }
+    .negative { color: #dc2626; }
+
+    /* Section */
+    .section { background: #fff; border-radius: 10px; padding: 24px 28px;
+                margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .section-title { font-size: 15px; font-weight: 700; color: #0C447C;
+                      text-transform: uppercase; letter-spacing: 0.6px;
+                      border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+                      margin-bottom: 18px; }
+
+    /* Marktnieuws */
+    .news-item { padding: 14px 0; border-bottom: 1px solid #f3f4f6; }
+    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .news-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .news-summary { font-size: 13px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }
+    .news-meta { font-size: 11px; color: #9ca3af; }
+    .news-link { font-size: 12px; }
+
+    /* Portfolio tabel */
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.6px; color: #6b7280; padding: 6px 10px 10px; }
+    td { padding: 10px; border-top: 1px solid #f3f4f6; vertical-align: top; }
+    .portfolio-row:hover td { background: #fafafa; }
+
+    .ticker-badge { display: inline-block; background: #0C447C; color: #fff;
+                     font-size: 11px; font-weight: 700; padding: 2px 7px;
+                     border-radius: 4px; letter-spacing: 0.5px; }
+    .pct-col { font-weight: 600; color: #374151; white-space: nowrap; }
+
+    .label { display: inline-block; font-size: 10px; font-weight: 700;
+              padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px; }
+    .label-BULLISH  { background: #dcfce7; color: #15803d; }
+    .label-BEARISH  { background: #fee2e2; color: #b91c1c; }
+    .label-NEUTRAAL { background: #f3f4f6; color: #6b7280; }
+
+    /* Actiepunten */
+    .action-list { list-style: none; counter-reset: action-counter; }
+    .action-list li { counter-increment: action-counter; display: flex;
+                       align-items: flex-start; gap: 12px; padding: 10px 0;
+                       border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+    .action-list li:last-child { border-bottom: none; }
+    .action-list li::before { content: counter(action-counter);
+                               display: flex; align-items: center; justify-content: center;
+                               min-width: 24px; height: 24px; background: #0C447C;
+                               color: #fff; font-size: 12px; font-weight: 700;
+                               border-radius: 50%; flex-shrink: 0; margin-top: 1px; }
+
+    /* Footer */
+    .footer { text-align: center; font-size: 12px; color: #9ca3af; padding: 16px 0 32px; }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Dagelijkse beursupdate</h1>
+    <div class="date">zaterdag 2 mei 2026</div>
+  </div>
+
+  <div class="container">
+
+    <!-- Metric cards -->
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="label">S&amp;P 500</div>
+        <div class="value">7.230,12</div>
+        <div class="change positive">+0,29% (vr 1 mei)</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Nasdaq</div>
+        <div class="value">25.114,44</div>
+        <div class="change positive">+0,89% (vr 1 mei)</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">AEX</div>
+        <div class="value">1.014,09</div>
+        <div class="change positive">+1,70% (do 30 apr, gesloten 1 mei)</div>
+      </div>
+    </div>
+
+    <!-- Marktoverzicht -->
+    <div class="section">
+      <div class="section-title">Marktoverzicht</div>
+
+        <div class="news-item">
+          <div class="news-title">S&amp;P 500 en Nasdaq sluiten op recordhoogtes — techsector trekt markten omhoog</div>
+          <div class="news-summary">De Amerikaanse aandelenmarkt sloot vrijdag 1 mei op nieuwe recordniveaus: de S&amp;P 500 op 7.230,12 (+0,29%) en de Nasdaq op 25.114,44 (+0,89%), gedreven door Alphabet's sterke Q1-resultaten en positief sentiment rond AI-investeringen. Voor beleggers betekent dit een sterke rugwind, met name voor de techzwaar samengestelde portefeuille.</div>
+          <div class="news-meta">TheStreet / Motley Fool &mdash; <a href="https://www.thestreet.com/latest-news/stock-market-today-may-1-2026-updates">lees meer</a></div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-title">Fed-onzekerheid neemt toe: inflatie eurozone op 3%, nieuwe Fed-voorzitter in aantocht</div>
+          <div class="news-summary">De inflatie in de eurozone steeg in april naar 3,0% en de Fed-vergadering in juni wordt de eerste onder de nieuwe voorzitter Kevin Warsh, wat extra onzekerheid over het rentepad creëert. De ECB overweegt tevens een renteverhoging in juni; hogere rentes zijn potentieel negatief voor groeiaandelen die een groot deel van de portefeuille vormen.</div>
+          <div class="news-meta">Morningstar Benelux &mdash; <a href="https://global.morningstar.com/nl/markten/wat-staat-de-fed-te-wachten-2026">lees meer</a></div>
+        </div>
+
+        <div class="news-item">
+          <div class="news-title">VAE verlaat OPEC per 1 mei — oliemarkt onder druk</div>
+          <div class="news-summary">De Verenigde Arabische Emiraten stapten per 1 mei uit het OPEC-kartel, wat de mondiale olieproductiecapaciteit verhoogt en neerwaartse druk op olieprijzen legt. Dit raakt Shell direct (3,0% positie), terwijl Volkswagen en andere Europese industrieën juist kunnen profiteren van lagere brandstofkosten.</div>
+          <div class="news-meta">Invezz &mdash; <a href="https://invezz.com/news/2026/05/02/is-may-2026-a-trap-or-an-opportunity-for-investors/">lees meer</a></div>
+        </div>
+
+    </div>
+
+    <!-- Portfolio materieel nieuws -->
+    <div class="section">
+      <div class="section-title">Portfolio &mdash; materieel nieuws</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th>
+            <th>Naam</th>
+            <th>%</th>
+            <th>Sentiment</th>
+            <th>Wat</th>
+            <th>Advies</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">VWRL</span></td>
+          <td>VWRL All-World ETF</td>
+          <td class="pct-col">8,5%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Wereldwijde aandelenmarkten bereikten nieuwe recordhoogtes deze week, gedreven door sterke techsector en dalende geopolitieke spanningen.</td>
+          <td>HOLD — ETF profiteert maximaal van de mondiale recordrally; geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/VWRL" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">COIN</span></td>
+          <td>Coinbase</td>
+          <td class="pct-col">7,6%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Coinbase lanceert XRP futures per 1 mei en rapporteert Q1 2026 resultaten op 7 mei; crypto-sentiment is positief met koers ~$205.</td>
+          <td>MONITOR — Earnings op 7 mei kunnen voor 10–15% koersbeweging zorgen; overweeg trailing stop of gedeeltelijke winstneming vóór rapport.</td>
+          <td><a href="https://bitcoinmagazine.nl/nieuws/coinbase-activeert-xrp-futures-1-mei-analist-voorspelt-ripple-koers" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ADBE</span></td>
+          <td>Adobe</td>
+          <td class="pct-col">5,7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Q1 2026 omzet +12% door AI-producten (Firefly, GenStudio), maar koers staat YTD nog 26% lager terwijl peers herstellen.</td>
+          <td>MONITOR — Fundamentals verbeteren structureel; wacht op technisch herstel boven $250 als instappunt voor bijkopen.</td>
+          <td><a href="https://seekingalpha.com/article/4896108-adobe-at-240-reminds-me-of-alphabet-at-165" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">GOOGL</span></td>
+          <td>Alphabet</td>
+          <td class="pct-col">4,8%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Q1 2026 earnings sterk: 20% omzetgroei, hoogste groei sinds 2022, en record cloud backlog van $460 miljard.</td>
+          <td>HOLD — Sterke fundamentals en cloud-groei ondersteunen koers; positie vasthouden.</td>
+          <td><a href="https://www.cnbc.com/2026/04/29/alphabet-googl-q1-2026-earnings.html" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SMH</span></td>
+          <td>VanEck Semiconductors</td>
+          <td class="pct-col">4,3%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Halfgeleider-ETF profiteert van NVDA's herstel naar $5 biljoen marktkapitalisatie en aanhoudende AI-chip vraag.</td>
+          <td>HOLD — Sectormomentum positief; NVDA-earnings op 20 mei zijn de volgende katalysator.</td>
+          <td><a href="https://finance.yahoo.com/quote/SMH" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ESPO</span></td>
+          <td>VanEck Gaming &amp; Esports</td>
+          <td class="pct-col">3,9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag; gaming/esports ETF volgt bredere techmarkt.</td>
+          <td>HOLD — Geen reden voor actie; positie rustig aanhouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/ESPO" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NVDA</span></td>
+          <td>Nvidia</td>
+          <td class="pct-col">3,8%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>NVDA herstelde naar $5 biljoen marktkapitalisatie met +21% in april; earnings verwacht op 20 mei met geprognosticeerde 77% groei.</td>
+          <td>HOLD — Sterk momentum richting earnings op 20 mei; traders wedden op +10% na het rapport.</td>
+          <td><a href="https://www.fool.com/investing/2026/05/01/nvidia-is-worth-5-trillion-once-again-heres-why-it/" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">VOW3</span></td>
+          <td>Volkswagen</td>
+          <td class="pct-col">3,7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>VAE verlaat OPEC per 1 mei; lagere olieprijs kan Europese auto-industrie kostenvoordelen opleveren.</td>
+          <td>HOLD — Geen direct VW-nieuws; indirect positief van dalende energiekosten.</td>
+          <td><a href="https://invezz.com/news/2026/05/02/is-may-2026-a-trap-or-an-opportunity-for-investors/" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NFLX</span></td>
+          <td>Netflix</td>
+          <td class="pct-col">3,6%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Netflix bereikt all-time highs; veteraan-analist Larry Tentarelli benoemt NFLX als "true leader" van de aandelenmarkt.</td>
+          <td>HOLD — Recordniveaus bevestigen momentum; positie vasthouden bij sterke technische trend.</td>
+          <td><a href="https://finance.yahoo.com/news/palantir-pltr-netflix-nflx-true-212105211.html" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SHELL</span></td>
+          <td>Shell</td>
+          <td class="pct-col">3,0%</td>
+          <td><span class="label label-BEARISH">BEARISH</span></td>
+          <td>VAE verlaat OPEC per 1 mei, waardoor mondiale olieproductie stijgt en olieprijzen neerwaartse druk ondervinden.</td>
+          <td>MONITOR — Olieprijs­risico neemt toe door OPEC-exit UAE; stel een prijsalert in bij Brent onder $70.</td>
+          <td><a href="https://invezz.com/news/2026/05/02/is-may-2026-a-trap-or-an-opportunity-for-investors/" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">DIS</span></td>
+          <td>Walt Disney</td>
+          <td class="pct-col">2,0%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag; Disney volgt bredere consumenten-discretionary sector.</td>
+          <td>HOLD — Geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/DIS" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ORCL</span></td>
+          <td>Oracle</td>
+          <td class="pct-col">2,8%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Cloud-sector profiteert breed van de AI-investeringsgolf; Oracle volgt de positieve trend in enterprise cloud.</td>
+          <td>HOLD — Meeliften op cloud/AI-tailwind; positie vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/ORCL" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PYPL</span></td>
+          <td>PayPal</td>
+          <td class="pct-col">2,7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>PayPal kondigt strategische herorganisatie aan en verheft Venmo tot zelfstandig rapportagesegment; Q1 earnings op 5 mei.</td>
+          <td>MONITOR — Earnings dinsdag 5 mei bepalen of herstructurering positief onthaald wordt; houd openingskoers woensdag in de gaten.</td>
+          <td><a href="https://finance.yahoo.com/quote/PYPL" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">QLYS</span></td>
+          <td>Qualys</td>
+          <td class="pct-col">2,7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag; cybersecurity-sector volgt bredere techindicatoren.</td>
+          <td>HOLD — Stabiele niche; geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/QLYS" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">AMZN</span></td>
+          <td>Amazon</td>
+          <td class="pct-col">2,4%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>AWS profiteert van brede cloud-groei in lijn met Alphabet's record backlog; Amazon volgt positieve tech/e-commerce trend.</td>
+          <td>HOLD — Sterke cloud-tailwind; positie vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/AMZN" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PLTR</span></td>
+          <td>Palantir</td>
+          <td class="pct-col">1,9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Palantir presenteert Q1 2026 resultaten maandag 4 mei na marktsluit; aandeel staat -20% YTD maar momentum verbetert sterk.</td>
+          <td>MONITOR — Earnings morgen (4 mei) zijn beslissend; markt prijst een koersbeweging van ±10% in.</td>
+          <td><a href="https://www.fool.com/investing/2026/04/28/palantir-stock-is-down-this-year-but-that-could-al/" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NKE</span></td>
+          <td>Nike</td>
+          <td class="pct-col">1,9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag; Nike volgt consumenten-discretionary sector.</td>
+          <td>HOLD — Geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/NKE" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SBUX</span></td>
+          <td>Starbucks</td>
+          <td class="pct-col">1,9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag; Starbucks volgt bredere consumenten-discretionary trend.</td>
+          <td>HOLD — Geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/SBUX" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">DUOL</span></td>
+          <td>Duolingo</td>
+          <td class="pct-col">1,8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Duolingo volgt groei-techsector.</td>
+          <td>HOLD — Groeiende gebruikersbasis; rustig vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/DUOL" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ULVR</span></td>
+          <td>Unilever</td>
+          <td class="pct-col">1,8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Unilever biedt defensieve buffer in het portfolio.</td>
+          <td>HOLD — Defensief anker; vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/ULVR" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NVO</span></td>
+          <td>Novo Nordisk ADR</td>
+          <td class="pct-col">1,5%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Novo Nordisk volgt brede farmaceutische sector.</td>
+          <td>HOLD — Stabiele farma-positie; geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/NVO" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ALFEN</span></td>
+          <td>Alfen</td>
+          <td class="pct-col">1,4%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Alfen volgt bredere energietransitiesector.</td>
+          <td>HOLD — Langetermijn-technologiepositie; vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/ALFEN.AS" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">KO</span></td>
+          <td>Coca-Cola</td>
+          <td class="pct-col">1,2%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Coca-Cola blijft defensieve stabiele positie.</td>
+          <td>HOLD — Defensieve buffer; geen actie nodig.</td>
+          <td><a href="https://finance.yahoo.com/quote/KO" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NIO</span></td>
+          <td>NIO ADR</td>
+          <td class="pct-col">0,8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; NIO volgt Chinese EV-sector.</td>
+          <td>HOLD — Kleine positie; geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/NIO" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">T</span></td>
+          <td>AT&amp;T</td>
+          <td class="pct-col">0,8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; AT&amp;T biedt stabiel dividend in telecomsector.</td>
+          <td>HOLD — Defensief dividendaandeel; vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/T" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">HPQ</span></td>
+          <td>HP Inc</td>
+          <td class="pct-col">0,5%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>HOLD — Kleine positie; geen actie nodig.</td>
+          <td><a href="https://finance.yahoo.com/quote/HPQ" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">FIGMA</span></td>
+          <td>Figma</td>
+          <td class="pct-col">0,4%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Figma volgt SaaS/design-tools sector.</td>
+          <td>HOLD — Kleine speculatieve positie; vasthouden.</td>
+          <td><a href="https://finance.yahoo.com/quote/FIGMA" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PINS</span></td>
+          <td>Pinterest</td>
+          <td class="pct-col">0,4%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws; Pinterest volgt social media-sector.</td>
+          <td>HOLD — Kleine positie; geen reden voor actie.</td>
+          <td><a href="https://finance.yahoo.com/quote/PINS" class="news-link">bericht</a></td>
+        </tr>
+
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SNAP</span></td>
+          <td>Snap</td>
+          <td class="pct-col">0,3%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>HOLD — Minimale positie; geen actie nodig.</td>
+          <td><a href="https://finance.yahoo.com/quote/SNAP" class="news-link">bericht</a></td>
+        </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Vandaag in de gaten houden -->
+    <div class="section">
+      <div class="section-title">Vandaag in de gaten houden</div>
+      <ol class="action-list">
+        <li><strong>COIN earnings 7 mei (7,6% positie):</strong> Zet een trailing stop van ~8% om winst te beschermen. Coinbase rapporteert woensdag 7 mei; crypto-sentiment is positief maar post-earnings volatiliteit kan fors zijn. Overweeg vóór het rapport gedeeltelijk winst te nemen als de koers pre-earnings boven $215 uitkomt.</li>
+        <li><strong>PLTR en PYPL earnings deze week:</strong> Palantir rapporteert maandag 4 mei (na sluit) en PayPal dinsdag 5 mei. Monitor de openingskoersen dinsdag en woensdag; bij PLTR wordt een ±10% beweging ingeprijsd — houd trailing stops klaar voor beide posities.</li>
+        <li><strong>ADBE bijkoop-analyse (5,7% positie):</strong> Q1-fundamentals verbeteren (+12% omzet) terwijl de koers YTD -26% staat. Stel een prijsalert in bij $250 als eerste technische weerstand; een dagsluit erboven kan het instapmomentsignaal zijn voor uitbreiding van de positie.</li>
+      </ol>
+    </div>
+
+    <div class="footer">
+      Volgende update: maandag 5 mei 2026, 09:00 &bull; alfendirk@gmail.com
+    </div>
+
+  </div>
+</body>
+</html>
