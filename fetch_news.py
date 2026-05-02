@@ -133,7 +133,7 @@ def yahoo_rss_url(ticker: str) -> str:
 
 def get_ticker_news(ticker: str) -> list[dict]:
     entries = fetch_feed(yahoo_rss_url(ticker))
-    results = []
+    results = []    
     for e in entries:
         if len(results) >= MAX_TICKER_ITEMS:
             break
