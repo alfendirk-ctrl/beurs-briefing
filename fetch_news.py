@@ -3,6 +3,7 @@ fetch_news.py — haalt markt- en portfolionieuws op, schrijft fetched_data.json
 en email_template.html. Geen Anthropic API calls; analyse gebeurt door Claude Code.
 """
 
+import base64
 import json
 import os
 import re
@@ -41,8 +42,11 @@ PORTFOLIO_FILE = "portfolio.json"
 OUTPUT_FILE    = "fetched_data.json"
 TEMPLATE_FILE  = "email_template.html"
 
-MAX_MARKET_ITEMS    = 3
-MAX_TICKER_ITEMS    = 3
+MAX_MARKET_ITEMS = 3
+MAX_TICKER_ITEMS = 3
+
+GITHUB_OWNER = "alfendirk-ctrl"
+GITHUB_REPO  = "beurs-briefing"
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -133,7 +137,7 @@ def yahoo_rss_url(ticker: str) -> str:
 
 def get_ticker_news(ticker: str) -> list[dict]:
     entries = fetch_feed(yahoo_rss_url(ticker))
-    results = []    
+    results = []
     for e in entries:
         if len(results) >= MAX_TICKER_ITEMS:
             break
@@ -246,16 +250,10 @@ def write_template(active_positions: list[dict]):
             background: #f0f2f5; color: #1a1a2e; }}
     a {{ color: #0C447C; text-decoration: none; }}
     a:hover {{ text-decoration: underline; }}
-
-    /* Header */
     .header {{ background: #0C447C; padding: 28px 40px; color: #fff; }}
     .header h1 {{ font-size: 22px; font-weight: 700; letter-spacing: 0.3px; }}
     .header .date {{ margin-top: 4px; font-size: 13px; opacity: 0.75; }}
-
-    /* Container */
     .container {{ max-width: 760px; margin: 0 auto; padding: 24px 16px; }}
-
-    /* Metric cards */
     .metrics {{ display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }}
     .metric-card {{ flex: 1; min-width: 180px; background: #fff;
                     border-radius: 10px; padding: 18px 20px;
@@ -266,42 +264,32 @@ def write_template(active_positions: list[dict]):
     .metric-card .change {{ font-size: 13px; font-weight: 600; margin-top: 4px; }}
     .positive {{ color: #16a34a; }}
     .negative {{ color: #dc2626; }}
-
-    /* Section */
     .section {{ background: #fff; border-radius: 10px; padding: 24px 28px;
                 margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }}
     .section-title {{ font-size: 15px; font-weight: 700; color: #0C447C;
                       text-transform: uppercase; letter-spacing: 0.6px;
                       border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
                       margin-bottom: 18px; }}
-
-    /* Marktnieuws */
     .news-item {{ padding: 14px 0; border-bottom: 1px solid #f3f4f6; }}
     .news-item:last-child {{ border-bottom: none; padding-bottom: 0; }}
     .news-title {{ font-size: 14px; font-weight: 600; margin-bottom: 4px; }}
     .news-summary {{ font-size: 13px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }}
     .news-meta {{ font-size: 11px; color: #9ca3af; }}
     .news-link {{ font-size: 12px; }}
-
-    /* Portfolio tabel */
     table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
     th {{ text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
           letter-spacing: 0.6px; color: #6b7280; padding: 6px 10px 10px; }}
     td {{ padding: 10px; border-top: 1px solid #f3f4f6; vertical-align: top; }}
     .portfolio-row:hover td {{ background: #fafafa; }}
-
     .ticker-badge {{ display: inline-block; background: #0C447C; color: #fff;
                      font-size: 11px; font-weight: 700; padding: 2px 7px;
                      border-radius: 4px; letter-spacing: 0.5px; }}
     .pct-col {{ font-weight: 600; color: #374151; white-space: nowrap; }}
-
     .label {{ display: inline-block; font-size: 10px; font-weight: 700;
               padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px; }}
     .label-BULLISH  {{ background: #dcfce7; color: #15803d; }}
     .label-BEARISH  {{ background: #fee2e2; color: #b91c1c; }}
     .label-NEUTRAAL {{ background: #f3f4f6; color: #6b7280; }}
-
-    /* Actiepunten */
     .action-list {{ list-style: none; counter-reset: action-counter; }}
     .action-list li {{ counter-increment: action-counter; display: flex;
                        align-items: flex-start; gap: 12px; padding: 10px 0;
@@ -312,21 +300,15 @@ def write_template(active_positions: list[dict]):
                                min-width: 24px; height: 24px; background: #0C447C;
                                color: #fff; font-size: 12px; font-weight: 700;
                                border-radius: 50%; flex-shrink: 0; margin-top: 1px; }}
-
-    /* Footer */
     .footer {{ text-align: center; font-size: 12px; color: #9ca3af; padding: 16px 0 32px; }}
   </style>
 </head>
 <body>
-
   <div class="header">
     <h1>Dagelijkse beursupdate</h1>
     <div class="date">{{DATE_LONG}}</div>
   </div>
-
   <div class="container">
-
-    <!-- Metric cards -->
     <div class="metrics">
       <div class="metric-card">
         <div class="label">S&amp;P 500</div>
@@ -344,26 +326,17 @@ def write_template(active_positions: list[dict]):
         <div class="change {{AEX_COLOR_CLASS}}">{{AEX_CHANGE}}</div>
       </div>
     </div>
-
-    <!-- Marktoverzicht -->
     <div class="section">
       <div class="section-title">Marktoverzicht</div>
       {market_news_rows}
     </div>
-
-    <!-- Portfolio materieel nieuws -->
     <div class="section">
       <div class="section-title">Portfolio &mdash; materieel nieuws</div>
       <table>
         <thead>
           <tr>
-            <th>Ticker</th>
-            <th>Naam</th>
-            <th>%</th>
-            <th>Sentiment</th>
-            <th>Wat</th>
-            <th>Advies</th>
-            <th></th>
+            <th>Ticker</th><th>Naam</th><th>%</th>
+            <th>Sentiment</th><th>Wat</th><th>Advies</th><th></th>
           </tr>
         </thead>
         <tbody>
@@ -371,8 +344,6 @@ def write_template(active_positions: list[dict]):
         </tbody>
       </table>
     </div>
-
-    <!-- Vandaag in de gaten houden -->
     <div class="section">
       <div class="section-title">Vandaag in de gaten houden</div>
       <ol class="action-list">
@@ -381,17 +352,63 @@ def write_template(active_positions: list[dict]):
         <li>{{ACTIE_3}}</li>
       </ol>
     </div>
-
     <div class="footer">
       Volgende update: {{NEXT_UPDATE_TIME}} &bull; {{GMAIL_USER}}
     </div>
-
   </div>
 </body>
 </html>
 """
     with open(TEMPLATE_FILE, "w") as f:
         f.write(html)
+
+
+# ---------------------------------------------------------------------------
+# GitHub: commit email_final.html en trigger workflow
+# ---------------------------------------------------------------------------
+
+def commit_email_final(token: str | None = None) -> None:
+    """
+    Commit email_final.html naar main en trigger de send_email.yml workflow.
+    Vereist env var GITHUB_TOKEN of expliciete token-parameter.
+    """
+    token = token or os.environ.get("GITHUB_TOKEN")
+    if not token:
+        raise RuntimeError("Stel GITHUB_TOKEN in als omgevingsvariabele.")
+
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    api_base = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
+
+    # Lees email_final.html
+    with open("email_final.html", "rb") as f:
+        content_b64 = base64.b64encode(f.read()).decode()
+
+    # Haal huidige SHA op als het bestand al bestaat (vereist voor update)
+    url = f"{api_base}/contents/email_final.html"
+    r = requests.get(url, headers=headers)
+    sha = r.json().get("sha") if r.status_code == 200 else None
+
+    payload: dict = {
+        "message": f"Update email_final.html — {datetime.now(timezone.utc).strftime('%Y-%m-%d')}",
+        "content": content_b64,
+        "branch": "main",
+    }
+    if sha:
+        payload["sha"] = sha
+
+    r = requests.put(url, headers=headers, json=payload)
+    r.raise_for_status()
+    print("email_final.html gecommit naar main")
+
+    # Trigger workflow
+    trigger_url = f"{api_base}/actions/workflows/send_email.yml/dispatches"
+    r = requests.post(trigger_url, headers=headers, json={"ref": "main"})
+    r.raise_for_status()
+    print("Workflow send_email.yml getriggerd")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,7 @@
 """
 send_email.py — verstuurt email_final.html via Gmail SMTP SSL.
-Wordt aangeroepen nadat Claude Code de placeholders heeft ingevuld.
+Wordt getriggerd door de GitHub Actions workflow nadat Claude Code
+email_final.html naar main heeft gecommit.
 """
 
 import os

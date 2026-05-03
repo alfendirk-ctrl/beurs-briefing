@@ -17,10 +17,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install feedparser beautifulsoup4 requests
-
-      - name: Fetch nieuws en genereer template
-        run: python fetch_news.py
+        run: pip install requests
 
       - name: Verstuur email
         env:
