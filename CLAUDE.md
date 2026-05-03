@@ -37,13 +37,18 @@ Sla het resultaat op als `email_final.html`.
 Controleer of alle placeholders vervangen zijn. Geen `{...}` mag nog zichtbaar zijn.
 
 ### Stap 5 — Commit en trigger
-Commit `email_final.html` naar de main branch en trigger de GitHub Actions workflow:
+Commit `email_final.html` naar main branch via de GitHub API en trigger daarna de
+GitHub Actions workflow `send_email.yml` via workflow_dispatch:
 ```python
 from fetch_news import commit_email_final
-commit_email_final()  # gebruikt env var GITHUB_TOKEN
+commit_email_final()  # leest GH_PAT uit omgevingsvariabelen
 ```
-`GITHUB_TOKEN` moet een Fine-grained PAT zijn met rechten:
-- **Contents: write** (voor commit)
-- **Actions: write** (voor workflow dispatch)
+De workflow verstuurt daarna automatisch de email naar alfendirk@gmail.com.
 
-De workflow `send_email.yml` verstuurt daarna automatisch de email.
+## Benodigde omgevingsvariabelen
+
+| Variabele | Waar | Doel |
+|---|---|---|
+| `GH_PAT` | Claude Code sessie + GitHub Actions secret | Commit + workflow trigger |
+| `GMAIL_USER` | GitHub Actions secret | Gmail verzender |
+| `GMAIL_APP_PASSWORD` | GitHub Actions secret | Gmail authenticatie |

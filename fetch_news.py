@@ -370,11 +370,11 @@ def write_template(active_positions: list[dict]):
 def commit_email_final(token: str | None = None) -> None:
     """
     Commit email_final.html naar main en trigger de send_email.yml workflow.
-    Vereist env var GITHUB_TOKEN of expliciete token-parameter.
+    Leest token uit env var GH_PAT (of expliciete parameter).
     """
-    token = token or os.environ.get("GITHUB_TOKEN")
+    token = token or os.environ.get("GH_PAT")
     if not token:
-        raise RuntimeError("Stel GITHUB_TOKEN in als omgevingsvariabele.")
+        raise RuntimeError("Stel GH_PAT in als omgevingsvariabele of GitHub Actions secret.")
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -383,11 +383,9 @@ def commit_email_final(token: str | None = None) -> None:
     }
     api_base = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}"
 
-    # Lees email_final.html
     with open("email_final.html", "rb") as f:
         content_b64 = base64.b64encode(f.read()).decode()
 
-    # Haal huidige SHA op als het bestand al bestaat (vereist voor update)
     url = f"{api_base}/contents/email_final.html"
     r = requests.get(url, headers=headers)
     sha = r.json().get("sha") if r.status_code == 200 else None
@@ -404,7 +402,6 @@ def commit_email_final(token: str | None = None) -> None:
     r.raise_for_status()
     print("email_final.html gecommit naar main")
 
-    # Trigger workflow
     trigger_url = f"{api_base}/actions/workflows/send_email.yml/dispatches"
     r = requests.post(trigger_url, headers=headers, json={"ref": "main"})
     r.raise_for_status()
