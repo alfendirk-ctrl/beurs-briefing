@@ -19,6 +19,19 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Diagnostics
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+        run: |
+          python - <<'EOF'
+          import os
+          user = os.environ.get("GMAIL_USER", "")
+          pw = os.environ.get("GMAIL_APP_PASSWORD", "")
+          print(f"GMAIL_USER length: {len(user)}, ends with @gmail.com: {user.endswith('@gmail.com')}")
+          print(f"GMAIL_APP_PASSWORD length: {len(pw)}, has spaces: {' ' in pw}")
+          EOF
+
       - name: Verstuur email
         env:
           GMAIL_USER: ${{ secrets.GMAIL_USER }}
