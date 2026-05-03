@@ -1,15 +1,16 @@
 """
-fetch_news.py — haalt markt- en portfolionieuws op, schrijft fetched_data.json
-en email_template.html. Geen Anthropic API calls; analyse gebeurt door Claude Code.
+fetch_news.py — haalt markt- en portfolionieuws op via RSS (stdlib XML),
+schrijft fetched_data.json en email_template.html.
+Gebruikt geen feedparser — alleen stdlib + requests + beautifulsoup4.
 """
 
 import base64
 import json
 import os
 import re
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 
-import feedparser
 import requests
 from bs4 import BeautifulSoup
 
@@ -48,106 +49,81 @@ MAX_TICKER_ITEMS = 3
 GITHUB_OWNER = "alfendirk-ctrl"
 GITHUB_REPO  = "beurs-briefing"
 
+HEADERS = {"User-Agent": "beurs-briefing/1.0"}
+
 # ---------------------------------------------------------------------------
-# Helpers
+# RSS via stdlib XML
 # ---------------------------------------------------------------------------
 
-def fetch_feed(url: str, timeout: int = 10) -> list[dict]:
+def fetch_rss(url: str) -> list[dict]:
     try:
-        d = feedparser.parse(url, request_headers={"User-Agent": "beurs-briefing/1.0"})
-        return d.entries
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        r.raise_for_status()
+        root = ET.fromstring(r.content)
+        items = []
+        for item in root.iter("item"):
+            def tag(name):
+                el = item.find(name)
+                return (el.text or "").strip() if el is not None else ""
+            items.append({
+                "title":     tag("title"),
+                "summary":   tag("description"),
+                "link":      tag("link"),
+                "published": tag("pubDate"),
+            })
+        return items
     except Exception as e:
-        print(f"  [WARN] feed error {url}: {e}")
+        print(f"  [WARN] {url}: {e}")
         return []
 
 
-def entry_text(entry) -> str:
-    parts = [entry.get("title", ""), entry.get("summary", "")]
-    return " ".join(parts)
-
-
-def entry_link(entry) -> str:
-    return entry.get("link", "")
-
-
-def entry_published(entry) -> str:
-    return entry.get("published", "")
-
-
 def clean_summary(raw: str) -> str:
-    soup = BeautifulSoup(raw or "", "html.parser")
-    text = soup.get_text(" ", strip=True)
+    text = BeautifulSoup(raw or "", "html.parser").get_text(" ", strip=True)
     return text[:280].strip()
-
-
-def fetch_index_quote(symbol: str) -> dict:
-    """Ophalen van index-quote via Yahoo Finance JSON endpoint."""
-    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range=1d"
-    headers = {"User-Agent": "beurs-briefing/1.0"}
-    try:
-        r = requests.get(url, headers=headers, timeout=10)
-        r.raise_for_status()
-        data = r.json()
-        meta = data["chart"]["result"][0]["meta"]
-        price   = meta.get("regularMarketPrice", 0)
-        prev    = meta.get("chartPreviousClose", price)
-        chg_pct = ((price - prev) / prev * 100) if prev else 0
-        return {"price": round(price, 2), "change_pct": round(chg_pct, 2)}
-    except Exception as e:
-        print(f"  [WARN] quote error {symbol}: {e}")
-        return {"price": 0, "change_pct": 0}
 
 # ---------------------------------------------------------------------------
 # Marktnieuws
 # ---------------------------------------------------------------------------
 
 def get_market_news() -> list[dict]:
-    results = []
-    seen_titles: set[str] = set()
-
+    results: list[dict] = []
+    seen: set[str] = set()
     for source, url in MARKET_FEEDS:
         if len(results) >= MAX_MARKET_ITEMS:
             break
-        entries = fetch_feed(url)
-        for e in entries:
+        for e in fetch_rss(url):
             if len(results) >= MAX_MARKET_ITEMS:
                 break
-            title = e.get("title", "").strip()
-            if title in seen_titles:
+            title = e["title"]
+            if title in seen:
                 continue
-            if MARKET_KEYWORDS.search(entry_text(e)):
-                seen_titles.add(title)
+            if MARKET_KEYWORDS.search(title + " " + e["summary"]):
+                seen.add(title)
                 results.append({
                     "title":     title,
-                    "summary":   clean_summary(e.get("summary", "")),
+                    "summary":   clean_summary(e["summary"]),
                     "source":    source,
-                    "link":      entry_link(e),
-                    "published": entry_published(e),
+                    "link":      e["link"],
+                    "published": e["published"],
                 })
-
     return results
 
 # ---------------------------------------------------------------------------
 # Portfolio-nieuws per ticker
 # ---------------------------------------------------------------------------
 
-def yahoo_rss_url(ticker: str) -> str:
-    return f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region=US&lang=en-US"
-
-
 def get_ticker_news(ticker: str) -> list[dict]:
-    entries = fetch_feed(yahoo_rss_url(ticker))
+    url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region=US&lang=en-US"
     results = []
-    for e in entries:
+    for e in fetch_rss(url):
         if len(results) >= MAX_TICKER_ITEMS:
             break
-        text = entry_text(e)
-        if MATERIAL_KEYWORDS.search(text):
+        if MATERIAL_KEYWORDS.search(e["title"] + " " + e["summary"]):
             results.append({
-                "title":     e.get("title", "").strip(),
-                "summary":   clean_summary(e.get("summary", "")),
-                "link":      entry_link(e),
-                "published": entry_published(e),
+                "title":     e["title"],
+                "summary":   clean_summary(e["summary"]),
+                "link":      e["link"],
+                "published": e["published"],
             })
     return results
 
@@ -162,6 +138,21 @@ INDEX_MAP = {
 }
 
 
+def fetch_index_quote(symbol: str) -> dict:
+    url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?interval=1d&range=1d"
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=10)
+        r.raise_for_status()
+        meta = r.json()["chart"]["result"][0]["meta"]
+        price   = meta.get("regularMarketPrice", 0)
+        prev    = meta.get("chartPreviousClose", price)
+        chg_pct = round((price - prev) / prev * 100, 2) if prev else 0
+        return {"price": round(price, 2), "change_pct": chg_pct}
+    except Exception as e:
+        print(f"  [WARN] quote {symbol}: {e}")
+        return {"price": 0, "change_pct": 0}
+
+
 def get_indices() -> dict:
     return {name: fetch_index_quote(sym) for name, sym in INDEX_MAP.items()}
 
@@ -172,7 +163,6 @@ def get_indices() -> dict:
 def main():
     with open(PORTFOLIO_FILE) as f:
         portfolio = json.load(f)["portfolio"]
-
     active = [p for p in portfolio if p["pct"] > 0]
 
     print("Ophalen indices...")
@@ -208,15 +198,9 @@ def main():
 # HTML email template
 # ---------------------------------------------------------------------------
 
-def pct_color_class(val: float) -> str:
-    return "positive" if val >= 0 else "negative"
-
-
 def write_template(active_positions: list[dict]):
-    tickers_with_news = [p for p in active_positions]
-
     portfolio_rows = ""
-    for pos in tickers_with_news:
+    for pos in active_positions:
         t = pos["ticker"]
         portfolio_rows += f"""
         <tr class="portfolio-row">
@@ -339,9 +323,7 @@ def write_template(active_positions: list[dict]):
             <th>Sentiment</th><th>Wat</th><th>Advies</th><th></th>
           </tr>
         </thead>
-        <tbody>
-          {portfolio_rows}
-        </tbody>
+        <tbody>{portfolio_rows}</tbody>
       </table>
     </div>
     <div class="section">
@@ -364,19 +346,15 @@ def write_template(active_positions: list[dict]):
 
 
 # ---------------------------------------------------------------------------
-# GitHub: commit email_final.html en trigger workflow
+# GitHub: commit email_final.html en trigger workflow (optioneel / handmatig)
 # ---------------------------------------------------------------------------
 
 def commit_email_final(token: str | None = None) -> None:
-    """
-    Commit email_final.html naar main en trigger de send_email.yml workflow.
-    Leest token uit env var GH_PAT (of expliciete parameter).
-    """
     token = token or os.environ.get("GH_PAT")
     if not token:
-        raise RuntimeError("Stel GH_PAT in als omgevingsvariabele of GitHub Actions secret.")
+        raise RuntimeError("Stel GH_PAT in als omgevingsvariabele.")
 
-    headers = {
+    hdrs = {
         "Authorization": f"Bearer {token}",
         "Accept": "application/vnd.github+json",
         "X-GitHub-Api-Version": "2022-11-28",
@@ -387,7 +365,7 @@ def commit_email_final(token: str | None = None) -> None:
         content_b64 = base64.b64encode(f.read()).decode()
 
     url = f"{api_base}/contents/email_final.html"
-    r = requests.get(url, headers=headers)
+    r = requests.get(url, headers=hdrs)
     sha = r.json().get("sha") if r.status_code == 200 else None
 
     payload: dict = {
@@ -398,13 +376,14 @@ def commit_email_final(token: str | None = None) -> None:
     if sha:
         payload["sha"] = sha
 
-    r = requests.put(url, headers=headers, json=payload)
-    r.raise_for_status()
+    requests.put(url, headers=hdrs, json=payload).raise_for_status()
     print("email_final.html gecommit naar main")
 
-    trigger_url = f"{api_base}/actions/workflows/send_email.yml/dispatches"
-    r = requests.post(trigger_url, headers=headers, json={"ref": "main"})
-    r.raise_for_status()
+    requests.post(
+        f"{api_base}/actions/workflows/send_email.yml/dispatches",
+        headers=hdrs,
+        json={"ref": "main"},
+    ).raise_for_status()
     print("Workflow send_email.yml getriggerd")
 
 

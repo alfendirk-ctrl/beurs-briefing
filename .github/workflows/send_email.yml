@@ -2,6 +2,8 @@ name: Dagelijkse beursupdate
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '0 7 * * 1-5'  # Werkdagen om 09:00 CEST / 08:00 CET
 
 jobs:
   send-email:
@@ -17,7 +19,15 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: pip install requests
+        run: pip install requests beautifulsoup4 anthropic
+
+      - name: Haal nieuws op
+        run: python fetch_news.py
+
+      - name: Analyseer en genereer email
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python analyze_and_generate.py
 
       - name: Verstuur email
         env:
