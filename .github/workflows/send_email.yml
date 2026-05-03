@@ -25,11 +25,20 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: |
           python - <<'EOF'
-          import os
-          user = os.environ.get("GMAIL_USER", "")
-          pw = os.environ.get("GMAIL_APP_PASSWORD", "")
-          print(f"GMAIL_USER length: {len(user)}, ends with @gmail.com: {user.endswith('@gmail.com')}")
-          print(f"GMAIL_APP_PASSWORD length: {len(pw)}, has spaces: {' ' in pw}")
+          import os, smtplib
+          user = os.environ.get("GMAIL_USER", "").strip()
+          pw   = os.environ.get("GMAIL_APP_PASSWORD", "").replace(" ", "")
+          print(f"GMAIL_USER length (stripped): {len(user)}, ends with @gmail.com: {user.endswith('@gmail.com')}")
+          print(f"GMAIL_APP_PASSWORD length (stripped, no spaces): {len(pw)}")
+          print("Testing SMTP login...")
+          try:
+              with smtplib.SMTP_SSL("smtp.gmail.com", 465) as s:
+                  s.login(user, pw)
+              print("SMTP login: SUCCESS")
+          except smtplib.SMTPAuthenticationError as e:
+              print(f"SMTP login: FAILED — {e}")
+          except Exception as e:
+              print(f"SMTP connection error: {e}")
           EOF
 
       - name: Verstuur email
