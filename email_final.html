@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dagelijkse beursupdate</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f0f2f5; color: #1a1a2e; }
+    a { color: #0C447C; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .header { background: #0C447C; padding: 28px 40px; color: #fff; }
+    .header h1 { font-size: 22px; font-weight: 700; letter-spacing: 0.3px; }
+    .header .date { margin-top: 4px; font-size: 13px; opacity: 0.75; }
+    .container { max-width: 760px; margin: 0 auto; padding: 24px 16px; }
+    .metrics { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+    .metric-card { flex: 1; min-width: 180px; background: #fff;
+                    border-radius: 10px; padding: 18px 20px;
+                    box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .metric-card .label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+                            letter-spacing: 0.8px; color: #6b7280; margin-bottom: 6px; }
+    .metric-card .value { font-size: 26px; font-weight: 700; color: #1a1a2e; }
+    .metric-card .change { font-size: 13px; font-weight: 600; margin-top: 4px; }
+    .positive { color: #16a34a; }
+    .negative { color: #dc2626; }
+    .section { background: #fff; border-radius: 10px; padding: 24px 28px;
+                margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+    .section-title { font-size: 15px; font-weight: 700; color: #0C447C;
+                      text-transform: uppercase; letter-spacing: 0.6px;
+                      border-bottom: 2px solid #e5e7eb; padding-bottom: 10px;
+                      margin-bottom: 18px; }
+    .news-item { padding: 14px 0; border-bottom: 1px solid #f3f4f6; }
+    .news-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .news-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+    .news-summary { font-size: 13px; color: #4b5563; line-height: 1.5; margin-bottom: 5px; }
+    .news-meta { font-size: 11px; color: #9ca3af; }
+    .news-link { font-size: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase;
+          letter-spacing: 0.6px; color: #6b7280; padding: 6px 10px 10px; }
+    td { padding: 10px; border-top: 1px solid #f3f4f6; vertical-align: top; }
+    .portfolio-row:hover td { background: #fafafa; }
+    .ticker-badge { display: inline-block; background: #0C447C; color: #fff;
+                     font-size: 11px; font-weight: 700; padding: 2px 7px;
+                     border-radius: 4px; letter-spacing: 0.5px; }
+    .pct-col { font-weight: 600; color: #374151; white-space: nowrap; }
+    .label { display: inline-block; font-size: 10px; font-weight: 700;
+              padding: 2px 8px; border-radius: 12px; letter-spacing: 0.5px; }
+    .label-BULLISH  { background: #dcfce7; color: #15803d; }
+    .label-BEARISH  { background: #fee2e2; color: #b91c1c; }
+    .label-NEUTRAAL { background: #f3f4f6; color: #6b7280; }
+    .action-list { list-style: none; counter-reset: action-counter; }
+    .action-list li { counter-increment: action-counter; display: flex;
+                       align-items: flex-start; gap: 12px; padding: 10px 0;
+                       border-bottom: 1px solid #f3f4f6; font-size: 14px; }
+    .action-list li:last-child { border-bottom: none; }
+    .action-list li::before { content: counter(action-counter);
+                               display: flex; align-items: center; justify-content: center;
+                               min-width: 24px; height: 24px; background: #0C447C;
+                               color: #fff; font-size: 12px; font-weight: 700;
+                               border-radius: 50%; flex-shrink: 0; margin-top: 1px; }
+    .footer { text-align: center; font-size: 12px; color: #9ca3af; padding: 16px 0 32px; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Dagelijkse beursupdate</h1>
+    <div class="date">zaterdag 3 mei 2026</div>
+  </div>
+  <div class="container">
+    <div class="metrics">
+      <div class="metric-card">
+        <div class="label">S&amp;P 500</div>
+        <div class="value">7.230,12</div>
+        <div class="change positive">+0,29%</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Nasdaq</div>
+        <div class="value">25.114,44</div>
+        <div class="change positive">+0,89%</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">AEX</div>
+        <div class="value">1.021,40</div>
+        <div class="change negative">-0,70%</div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Marktoverzicht</div>
+      
+        <div class="news-item">
+          <div class="news-title">S&amp;P 500 bereikt nieuw all-time high na Apple en Alphabet earnings</div>
+          <div class="news-summary">De S&P 500 sloot vrijdag op 7.230 — een nieuw record. Apple (+3%) en Alphabet (+10%) leidden de rally na sterke Q1-cijfers. Beleggers negeren vooralsnog zorgen over rente en tarieven.</div>
+          <div class="news-meta">CNBC &mdash; <a href="https://www.cnbc.com/2026/05/01/stock-market-next-week-outlook-for-may-4-8-2026.html">lees meer</a></div>
+        </div>
+        <div class="news-item">
+          <div class="news-title">Alphabet verhoogt CapEx naar $190 miljard na sterke kwartaalcijfers</div>
+          <div class="news-summary">Alphabet overtrof Q1-verwachtingen op omzet en winst en verhoogde zijn 2026-investeringsplan naar maximaal $190 mrd. AI-infrastructure blijft topprioriteit.</div>
+          <div class="news-meta">CNBC &mdash; <a href="https://www.cnbc.com/2026/05/01/a-major-mag-7-shift-with-alphabets-market-cap-set-to-pass-nvidias.html">lees meer</a></div>
+        </div>
+        <div class="news-item">
+          <div class="news-title">Drukke earnings-week: Palantir, Disney en Coinbase rapporteren</div>
+          <div class="news-summary">Komende week staan drie portefeuilleposities voor de cijfers: Palantir (ma 4 mei), Walt Disney (wo 6 mei) en Coinbase (do 7 mei). Volatiliteit verwacht in alle drie.</div>
+          <div class="news-meta">Earnings Whispers &mdash; <a href="https://www.earningswhispers.com/calendar">lees meer</a></div>
+        </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Portfolio &mdash; materieel nieuws</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Ticker</th><th>Naam</th><th>%</th>
+            <th>Sentiment</th><th>Wat</th><th>Advies</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">VWRL</span></td>
+          <td>VWRL All-World ETF</td>
+          <td class="pct-col">8.5%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Wereldwijde aandelenmarkt stijgt licht mee met herstel in VS.</td>
+          <td>Kernpositie, houd aan — brede diversificatie werkt als anker.</td>
+          <td><a href="https://finance.yahoo.com/quote/VWRL.AS/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">COIN</span></td>
+          <td>Coinbase</td>
+          <td class="pct-col">7.6%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Coinbase rapporteert Q1-cijfers op 7 mei; crypto-sector profiteert van sterke Bitcoin-markt in mei.</td>
+          <td>Houd positie aan — earnings kunnen positieve katalysator zijn bij sterke handelsvolumes.</td>
+          <td><a href="https://finance.yahoo.com/quote/COIN/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ADBE</span></td>
+          <td>Adobe</td>
+          <td class="pct-col">5.7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/ADBE/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">GOOGL</span></td>
+          <td>Alphabet</td>
+          <td class="pct-col">4.8%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Alphabet verslaat Q1-verwachtingen op omzet en winst; aandeel steeg 10% en marktwaarde passeert Nvidia.</td>
+          <td>Sterke positie — AI-investeringsthema blijft intact, overweeg bijkopen bij terugval.</td>
+          <td><a href="https://www.cnbc.com/2026/05/01/a-major-mag-7-shift-with-alphabets-market-cap-set-to-pass-nvidias.html" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SMH</span></td>
+          <td>VanEck Semiconductors</td>
+          <td class="pct-col">4.3%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Big Tech verhoogt AI-infrastructuurinvesteringen fors; halfgeleidersector profiteert direct.</td>
+          <td>Houd aan — structurele AI-vraag ondersteunt de sector op langere termijn.</td>
+          <td><a href="https://finance.yahoo.com/quote/SMH/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ESPO</span></td>
+          <td>VanEck Gaming & Esports</td>
+          <td class="pct-col">3.9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/ESPO/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NVDA</span></td>
+          <td>Nvidia</td>
+          <td class="pct-col">3.8%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Alphabet en andere Big Tech verhogen CapEx sterk; Nvidia als GPU-leverancier profiteert hiervan direct.</td>
+          <td>Houd aan — earnings komen eraan, AI-capex-golf geeft rugwind.</td>
+          <td><a href="https://finance.yahoo.com/quote/NVDA/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">VOW3</span></td>
+          <td>Volkswagen</td>
+          <td class="pct-col">3.7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/VOW3.DE/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NFLX</span></td>
+          <td>Netflix</td>
+          <td class="pct-col">3.6%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/NFLX/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SHELL</span></td>
+          <td>Shell</td>
+          <td class="pct-col">3.0%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/SHEL/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">DIS</span></td>
+          <td>Walt Disney</td>
+          <td class="pct-col">2.0%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Walt Disney rapporteert Q2-cijfers op 6 mei; streaming en parkbezoek zijn de kernthema's.</td>
+          <td>Houd aan — resultaten komende week geven duidelijkheid over hersteltraject.</td>
+          <td><a href="https://finance.yahoo.com/quote/DIS/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ORCL</span></td>
+          <td>Oracle</td>
+          <td class="pct-col">2.8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/ORCL/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PYPL</span></td>
+          <td>PayPal</td>
+          <td class="pct-col">2.7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/PYPL/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">QLYS</span></td>
+          <td>Qualys</td>
+          <td class="pct-col">2.7%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/QLYS/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">AMZN</span></td>
+          <td>Amazon</td>
+          <td class="pct-col">2.4%</td>
+          <td><span class="label label-BULLISH">BULLISH</span></td>
+          <td>Amazon rapporteerde sterke Q1-cijfers; AWS-groei en advertentie-inkomsten overtroffen verwachtingen.</td>
+          <td>Houd aan — cloud en AI-segment blijven solide groeidrivers.</td>
+          <td><a href="https://finance.yahoo.com/quote/AMZN/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PLTR</span></td>
+          <td>Palantir</td>
+          <td class="pct-col">1.9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Palantir rapporteert maandag 4 mei Q1-cijfers; aandeel staat -20% YTD maar verwachtingen zijn hoog.</td>
+          <td>Houd aan — earnings kunnen de trend keren bij sterke commerciële groei.</td>
+          <td><a href="https://www.fool.com/investing/2026/04/28/palantir-stock-is-down-this-year-but-that-could-al/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NKE</span></td>
+          <td>Nike</td>
+          <td class="pct-col">1.9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/NKE/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SBUX</span></td>
+          <td>Starbucks</td>
+          <td class="pct-col">1.9%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/SBUX/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">DUOL</span></td>
+          <td>Duolingo</td>
+          <td class="pct-col">1.8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/DUOL/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ULVR</span></td>
+          <td>Unilever</td>
+          <td class="pct-col">1.8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/ULVR.AS/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NVO</span></td>
+          <td>Novo Nordisk ADR</td>
+          <td class="pct-col">1.5%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/NVO/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">ALFEN</span></td>
+          <td>Alfen</td>
+          <td class="pct-col">1.4%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/ALFEN.AS/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">KO</span></td>
+          <td>Coca-Cola</td>
+          <td class="pct-col">1.2%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/KO/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">NIO</span></td>
+          <td>NIO ADR</td>
+          <td class="pct-col">0.8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/NIO/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">T</span></td>
+          <td>AT&T</td>
+          <td class="pct-col">0.8%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/T/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">HPQ</span></td>
+          <td>HP Inc</td>
+          <td class="pct-col">0.5%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/HPQ/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">FIGMA</span></td>
+          <td>Figma</td>
+          <td class="pct-col">0.4%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/FIGMA/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">PINS</span></td>
+          <td>Pinterest</td>
+          <td class="pct-col">0.4%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/PINS/" class="news-link">bericht</a></td>
+        </tr>
+        <tr class="portfolio-row">
+          <td><span class="ticker-badge">SNAP</span></td>
+          <td>Snap</td>
+          <td class="pct-col">0.3%</td>
+          <td><span class="label label-NEUTRAAL">NEUTRAAL</span></td>
+          <td>Geen materieel nieuws vandaag.</td>
+          <td>Houd positie aan.</td>
+          <td><a href="https://finance.yahoo.com/quote/SNAP/" class="news-link">bericht</a></td>
+        </tr></tbody>
+      </table>
+    </div>
+    <div class="section">
+      <div class="section-title">Vandaag in de gaten houden</div>
+      <ol class="action-list">
+        <li>Palantir rapporteert maandag 4 mei Q1-cijfers — AI-commercieel segment bepaalt of -20% YTD-daling keert. Houd de reactie op omzetgroei en guidance scherp in de gaten.</li>
+        <li>Walt Disney rapporteert woensdag 6 mei — streaming-abonneegroei en parkbezoek zijn de kernthema's. Zwakke outlook kan extra druk geven op de al bescheiden positie.</li>
+        <li>Coinbase rapporteert donderdag 7 mei — crypto-handelsvolumes en regulatoire updates zijn bepalend. Sterke Bitcoin-markt in mei geeft rugwind.</li>
+      </ol>
+    </div>
+    <div class="footer">
+      Volgende update: maandag 4 mei om 08:00 &bull; alfendirk@gmail.com
+    </div>
+  </div>
+</body>
+</html>
