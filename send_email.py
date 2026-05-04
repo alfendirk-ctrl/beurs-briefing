@@ -11,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 GMAIL_USER     = os.environ["GMAIL_USER"].strip()
-GMAIL_PASSWORD = os.environ["GMAIL_APP_PASSWORD"].replace(" ", "")
+GMAIL_PASSWORD = "".join(os.environ["GMAIL_APP_PASSWORD"].split())
 TO_ADDRESS     = "alfendirk@gmail.com"
 HTML_FILE      = "email_final.html"
 
